@@ -1,5 +1,7 @@
 "use client";
 
+import ChatBot from "../components/ChatBot";
+
 const Arrow = () => <span className="arrow">↗</span>;
 const Down = () => <div className="down">↓</div>;
 
@@ -57,6 +59,7 @@ export default function Home() {
       <section className="writing wrap" id="writing"><span className="section-tag">08 / FROM THE NOTEBOOK</span><div className="article"><span>01</span><h3>How I Built a Browser AI Agent</h3><a href="#contact"><Arrow /></a></div><div className="article"><span>02</span><h3>Why I Built Vectorless RAG</h3><a href="#contact"><Arrow /></a></div><div className="article"><span>03</span><h3>Building AI Applications without LangChain</h3><a href="#contact"><Arrow /></a></div></section>
 
       <footer id="contact"><div className="wrap"><span className="section-tag">09 / CONTACT</span><h2>From idea to<br /><em>AI-powered product.</em></h2><a className="email" href="mailto:saikrishna.dev2001@gmail.com">saikrishna.dev2001@gmail.com <Arrow /></a><div className="footer-bottom"><span>© 2026 SAI KRISHNA MUPPURI</span><span>BUILT WITH CURIOSITY + CODE</span><div><a href="https://github.com/saikrishna1355" target="_blank" rel="noreferrer">GitHub</a><a href="https://linkedin.com/in/muppuri-sai-krishna-94a812190" target="_blank" rel="noreferrer">LinkedIn</a></div></div></div></footer>
+      <ChatBot />
     </main>
   );
 }
