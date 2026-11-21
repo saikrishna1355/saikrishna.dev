@@ -1,42 +1,49 @@
 import type { Metadata } from "next";
 import { Analytics } from "@vercel/analytics/next";
 import { Geist, Geist_Mono, Instrument_Serif } from "next/font/google";
+import { SITE_URL, NAME, TITLE, DESCRIPTION, LINKS } from "@/lib/site";
 import "./globals.css";
 
 const sans = Geist({ subsets: ["latin"], variable: "--font-sans" });
 const mono = Geist_Mono({ subsets: ["latin"], variable: "--font-mono" });
 const serif = Instrument_Serif({ subsets: ["latin"], weight: "400", style: ["normal", "italic"], variable: "--font-serif" });
 
-// Absolute base URL for Open Graph / Twitter images. Set NEXT_PUBLIC_SITE_URL to your
-// custom domain; on Vercel it falls back to the project's production domain.
-const siteUrl =
-  process.env.NEXT_PUBLIC_SITE_URL ||
-  (process.env.VERCEL_PROJECT_PRODUCTION_URL ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}` : "http://localhost:3000");
-
-const TITLE = "Sai Krishna Muppuri | AI-Focused Software Engineer";
-const DESCRIPTION =
-  "AI-focused Senior Software Engineer building voice-driven browser agents, vectorless RAG for document intelligence, LLM infrastructure SDKs, AI website monitoring, and dependency security tools.";
+// Structured data so search engines understand who this site is about.
+const personJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "Person",
+  name: NAME,
+  url: SITE_URL,
+  image: `${SITE_URL}/profile.jpg`,
+  jobTitle: "Senior Software Engineer",
+  worksFor: { "@type": "Organization", name: "Novac Technology Solutions" },
+  email: `mailto:${LINKS.email}`,
+  sameAs: [LINKS.github, LINKS.linkedin],
+  knowsAbout: ["AI Agents", "Browser Automation", "Retrieval-Augmented Generation", "LLM Infrastructure", "React", "Next.js", "Node.js", "TypeScript", "PHP", "Laravel", "AWS", "Application Security"],
+};
 
 export const metadata: Metadata = {
-  metadataBase: new URL(siteUrl),
+  metadataBase: new URL(SITE_URL),
   title: TITLE,
   description: DESCRIPTION,
   keywords: ["Sai Krishna Muppuri", "AI Software Engineer", "AI Engineer", "AI Agents", "Browser Automation", "Voice AI", "RAG", "Vectorless RAG", "Document Intelligence", "LLM Infrastructure", "LLM Optimizer", "AI Monitoring", "Application Security", "Dependency Scanning", "Senior Software Engineer", "React", "Next.js", "Node.js", "TypeScript", "Python", "Playwright"],
-  authors: [{ name: "Sai Krishna Muppuri", url: "https://github.com/saikrishna1355" }],
-  creator: "Sai Krishna Muppuri",
+  authors: [{ name: NAME, url: LINKS.github }],
+  creator: NAME,
+  // og:image / twitter:image come from app/opengraph-image.tsx (1200x630).
   openGraph: {
-    type: "website",
+    type: "profile",
     url: "/",
     title: TITLE,
     description: DESCRIPTION,
-    siteName: "Sai Krishna Muppuri Portfolio",
-    images: [{ url: "/profile.jpg", width: 1200, height: 630, alt: "Sai Krishna Muppuri" }],
+    siteName: `${NAME} Portfolio`,
+    locale: "en_US",
+    firstName: "Sai Krishna",
+    lastName: "Muppuri",
   },
   twitter: {
     card: "summary_large_image",
     title: TITLE,
-    description: "AI agents, document intelligence, LLM infrastructure, AI monitoring, and developer security tools.",
-    images: ["/profile.jpg"],
+    description: DESCRIPTION,
   },
   alternates: { canonical: "/" },
   robots: { index: true, follow: true },
@@ -49,7 +56,14 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={`h-full antialiased ${sans.variable} ${mono.variable} ${serif.variable}`}>
-      <body className="min-h-full flex flex-col">{children}<Analytics /></body>
+      <body className="min-h-full flex flex-col">
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(personJsonLd).replace(/</g, "\\u003c") }}
+        />
+        {children}
+        <Analytics />
+      </body>
     </html>
   );
 }
