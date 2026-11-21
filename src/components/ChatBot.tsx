@@ -1,14 +1,16 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import RichText from "./RichText";
 
 type Message = { role: "user" | "assistant"; content: string };
 
 export default function ChatBot() {
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([
-    { role: "assistant", content: "Hi! I'm Sai's AI assistant. Ask me anything about his skills, projects, or experience." }
+    { role: "assistant", content: "Hi! I'm **Sai Krishna**. Ask me anything about my work, projects, or experience." }
   ]);
+  const SUGGESTIONS = ["What's your name?", "What are you working on?", "Your tech stack?", "How can I contact you?"];
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
@@ -17,8 +19,8 @@ export default function ChatBot() {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, open]);
 
-  const send = async () => {
-    const text = input.trim();
+  const send = async (preset?: string) => {
+    const text = (preset ?? input).trim();
     if (!text || loading) return;
     const updated: Message[] = [...messages, { role: "user", content: text }];
     setMessages(updated);
@@ -31,7 +33,7 @@ export default function ChatBot() {
         body: JSON.stringify({ messages: updated.filter(m => m.role !== "assistant" || updated.indexOf(m) > 0) }),
       });
       const data = await res.json();
-      setMessages([...updated, { role: "assistant", content: data.reply }]);
+      setMessages([...updated, { role: "assistant", content: data.reply ?? "Something went wrong. Please try again." }]);
     } catch {
       setMessages([...updated, { role: "assistant", content: "Something went wrong. Please try again." }]);
     }
@@ -43,14 +45,29 @@ export default function ChatBot() {
       {open && (
         <div className="chat-window">
           <div className="chat-header">
-            <div><span className="pulse" /> ASK ABOUT SAI</div>
-            <button onClick={() => setOpen(false)}>✕</button>
+            <div className="chat-id">
+              <span className="chat-avatar">SK</span>
+              <div>
+                <b>Sai Krishna</b>
+                <small><span className="pulse" /> Usually replies instantly</small>
+              </div>
+            </div>
+            <button onClick={() => setOpen(false)} aria-label="Close chat">✕</button>
           </div>
           <div className="chat-messages">
             {messages.map((m, i) => (
-              <div key={i} className={`chat-msg ${m.role}`} dangerouslySetInnerHTML={{ __html: m.role === "assistant" ? m.content.replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>").replace(/\n/g, "<br />") : m.content }} />
+              <div key={i} className={`chat-msg ${m.role}`}>
+                {m.role === "assistant" ? <RichText text={m.content} /> : m.content}
+              </div>
             ))}
             {loading && <div className="chat-msg assistant chat-typing"><span /><span /><span /></div>}
+            {messages.length === 1 && !loading && (
+              <div className="chat-suggestions">
+                {SUGGESTIONS.map((s) => (
+                  <button key={s} onClick={() => send(s)}>{s}</button>
+                ))}
+              </div>
+            )}
             <div ref={bottomRef} />
           </div>
           <div className="chat-input">
@@ -61,11 +78,11 @@ export default function ChatBot() {
               placeholder="Ask anything..."
               autoFocus
             />
-            <button onClick={send} disabled={loading}>↗</button>
+            <button onClick={() => send()} disabled={loading} aria-label="Send">↗</button>
           </div>
         </div>
       )}
-      <button className="chat-bubble" onClick={() => setOpen(o => !o)}>
+      <button className="chat-bubble" onClick={() => setOpen(o => !o)} aria-label={open ? "Close chat" : "Open chat"}>
         {open ? "✕" : (
           <svg width="26" height="26" viewBox="0 0 26 26" fill="none">
             <circle cx="13" cy="13" r="12" stroke="#0a0f0d" strokeWidth="1.5" fill="none" className="bot-ring" />

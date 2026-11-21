@@ -1,22 +1,67 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import ChatBot from "../components/ChatBot";
+import ProjectCard from "../components/ProjectCard";
+import { projects } from "../data/projects";
 
 const Arrow = () => <span className="arrow">↗</span>;
-const Down = () => <div className="down">↓</div>;
 
-function Flow({ items }: { items: string[] }) {
-  return <div className="flow">{items.map((item, i) => <div key={item}><div className="flow-node">{item}</div>{i < items.length - 1 && <Down />}</div>)}</div>;
-}
+const REVEAL_SELECTOR = ".now, .intro, .section-head, .project, .opensource, .skills, .timeline-intro, .timeline-list > div, .article, footer h2, .email";
 
 export default function Home() {
+  const [scrolled, setScrolled] = useState(false);
+
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 24);
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+
+    // Reveal on scroll. Elements stay visible if JS or IntersectionObserver is unavailable.
+    const els = Array.from(document.querySelectorAll<HTMLElement>(REVEAL_SELECTOR));
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    let io: IntersectionObserver | undefined;
+    if (!reduce && "IntersectionObserver" in window) {
+      els.forEach((el) => el.classList.add("reveal"));
+      io = new IntersectionObserver(
+        (entries) => entries.forEach((e) => {
+          if (e.isIntersecting) {
+            e.target.classList.add("in");
+            io?.unobserve(e.target);
+          }
+        }),
+        { threshold: 0.12, rootMargin: "0px 0px -40px 0px" }
+      );
+      els.forEach((el) => io!.observe(el));
+    }
+
+    // Cursor spotlight on project cards.
+    const cards = Array.from(document.querySelectorAll<HTMLElement>(".project"));
+    const onMove = (e: PointerEvent) => {
+      const el = e.currentTarget as HTMLElement;
+      const r = el.getBoundingClientRect();
+      el.style.setProperty("--mx", `${e.clientX - r.left}px`);
+      el.style.setProperty("--my", `${e.clientY - r.top}px`);
+    };
+    cards.forEach((c) => c.addEventListener("pointermove", onMove));
+
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      io?.disconnect();
+      cards.forEach((c) => c.removeEventListener("pointermove", onMove));
+    };
+  }, []);
+
   return (
     <main>
+      <div className="bg-aurora" aria-hidden="true" />
+      <div className={`nav-shell${scrolled ? " scrolled" : ""}`}>
       <nav className="nav wrap">
         <a className="brand" href="#top">SAI KRISHNA MUPPURI<span>.</span></a>
         <div className="nav-links"><a href="#work">Work</a><a href="#about">About</a><a href="#writing">Writing</a></div>
         <a className="nav-cta" href="#contact">Let&apos;s talk <Arrow /></a>
       </nav>
+      </div>
 
       <section className="hero wrap" id="top">
         <div className="hero-copy">
@@ -41,20 +86,19 @@ export default function Home() {
 
       <section className="now wrap"><span className="section-tag">01 / CURRENTLY BUILDING</span><div className="now-list"><span>🚀 Browser AI Agent</span><span>📚 Vectorless RAG</span><span>⚡ LLM Optimizer SDK</span></div></section>
 
-      <section className="wrap intro" id="about"><span className="section-tag">02 / ABOUT ME</span><div className="intro-inner"><div className="intro-photo"><img src="/profile.jpg" alt="Sai Krishna Muppuri" /></div><div><h2>Building intelligent<br /><em>software for the modern web.</em></h2><p>I've shipped a voice-controlled browser agent, a vectorless RAG system, an LLM SDK with 9,350+ npm downloads, and insurance platforms serving 50k+ users. I work across the full stack — React, Next.js, Node.js, PHP/Laravel, AWS — and I integrate AI where it actually moves the needle, not just where it sounds impressive.</p><div className="interests"><span>React.js</span><span>Next.js</span><span>Node.js</span><span>TypeScript</span><span>PHP / Laravel</span><span>MySQL</span><span>AWS</span><span>Claude / OpenAI APIs</span><span>Browser Automation</span><span>MCP</span><span>Browser Automation</span><span>Playwright</span><span>REST APIs</span><span>JWT / OAuth</span><span>Docker</span><span>GitHub Actions</span><span>CI/CD</span></div><div className="about-highlights"><div><b>3+</b><span>Years of Experience</span></div><div><b>20+</b><span>Projects Delivered</span></div><div><b>AI-First</b><span>Application Development</span></div><div><b>End-to-End</b><span>Architecture &amp; Deployment</span></div></div></div></div></section>
+      <section className="wrap intro" id="about"><span className="section-tag">02 / ABOUT ME</span><div className="intro-inner"><div className="intro-photo"><img src="/profile.jpg" alt="Sai Krishna Muppuri" /></div><div><h2>Building intelligent software.<br /><em>Engineering real-world impact.</em></h2><p>I&apos;m a Full-Stack Software Engineer with 3+ years of experience building scalable web applications, AI-powered solutions, and enterprise platforms.</p><p>From developing a <strong>voice-controlled AI browser agent</strong> and a <strong>vectorless RAG system</strong> to building an <strong>LLM SDK</strong> and open-source packages with <strong>25,175+ npm downloads</strong>, I turn complex ideas into practical, production-ready software.</p><p>My experience spans enterprise insurance platforms supporting <strong>50K+ users</strong>, full-stack application development, browser automation, and AI integration.</p><p>I work across <strong>React, Next.js, Node.js, PHP/Laravel, and AWS</strong>, combining strong engineering fundamentals with modern AI capabilities to build software that is reliable, scalable, and genuinely useful.</p><div className="interests">{["React.js", "Next.js", "TypeScript", "Node.js", "PHP", "Laravel", "REST APIs", "MySQL", "AWS", "Docker", "LLMs", "Claude / OpenAI APIs", "MCP", "Playwright", "Browser Automation", "JWT / OAuth", "GitHub Actions", "CI/CD"].map((t) => <span key={t}>{t}</span>)}</div><div className="about-highlights"><div><b>3+</b><span>Years of Experience</span></div><div><b>20+</b><span>Projects Built</span></div><div><b>25K+</b><span>npm Downloads</span></div><div><b>50K+</b><span>Platform Users Supported</span></div></div></div></div></section>
 
-      <section className="projects wrap" id="work"><div className="section-head"><span className="section-tag">03 / SELECTED WORK</span><h2>Products with<br /><em>real leverage.</em></h2></div>
-        <article className="project featured" id="architecture"><div className="project-content"><div className="project-number">01 <span>★★★★★</span></div><p className="project-type">ENTERPRISE BROWSER AUTOMATION</p><h3>Voice Controlled<br />AI Browser Agent</h3><p className="project-desc">Listens to a voice command, plans a sequence of browser actions using an LLM, fills insurance forms, and completes the full purchase — no human clicks required.</p><div className="proof-strip"><span><b>Voice</b>conversation</span><span><b>DOM</b>aware</span><span><b>Workflow</b>automation</span></div><div className="feature-list"><span>✓ Voice Conversation</span><span>✓ AI Navigation</span><span>✓ Form Filling</span><span>✓ Insurance Journey Automation</span></div><a className="text-link" href="#contact">Discuss this project <Arrow /></a></div><div className="architecture mini agent-stack"><small>LIVE AGENT PATH</small><span>USER COMMAND</span><Down /><span>VOICE INTENT</span><Down /><span className="highlight">LLM + PLANNER</span><Down /><span>ACTION ENGINE</span><Down /><span>DOM WORKFLOW</span></div><div className="project-system"><div className="system-title"><h4>Execution pipeline</h4><p>From speech to verified browser actions, every step is observable and designed for enterprise workflows.</p></div><div className="system-flow"><div>Voice<span>capture</span></div><b>→</b><div>Speech<span>transcript</span></div><b>→</b><div className="lit">LLM<span>reasoning</span></div><b>→</b><div>Planner<span>steps</span></div><b>→</b><div>Action Engine<span>tools</span></div><b>→</b><div>Browser<span>DOM verify</span></div></div></div></article>
+      <section className="projects wrap" id="work">
+        <div className="section-head"><span className="section-tag">03 / SELECTED WORK</span><h2>AI agents, retrieval<br /><em>&amp; LLM infrastructure.</em></h2></div>
+        <ProjectCard project={projects[0]} index={0} featured />
         <div className="project-grid">
-          <article className="project card"><div className="project-number">02 <span>★★★★★</span></div><p className="project-type">KNOWLEDGE RETRIEVAL</p><h3>Vectorless RAG</h3><div className="horizontal-flow"><span>PDF</span><b>→</b><span>TREE STRUCTURE</span><b>→</b><span>RETRIEVER</span><b>→</b><span>LLM</span><b>→</b><span>ANSWER</span></div><p className="muted">Answers questions from PDFs by parsing them into a navigable tree structure — no vector database, no embeddings, no infrastructure cost.</p><a className="text-link" href="#contact">Discuss this project <Arrow /></a></article>
-          <article className="project card optimizer"><div className="project-number">03</div><p className="project-type">PUBLISHED DEVELOPER INFRASTRUCTURE</p><h3>LLM Optimizer SDK</h3><div className="horizontal-flow"><span>Prompt</span><b>→</b><span>Optimizer</span><b>→</b><span>Cache</span><b>→</b><span>Response</span></div><p className="muted">Published SDK that cuts LLM API costs through prompt deduplication, response caching, provider failover, and token redaction — drop-in for any Node.js app.</p><a className="text-link" href="https://github.com/saikrishna1355/llm-optimizer" target="_blank" rel="noreferrer">View on GitHub <Arrow /></a></article>
-          <article className="project card observer"><div className="project-number">04</div><p className="project-type">AUTOMATED SITE TESTING &amp; AI MONITORING</p><h3>AI Live Website<br />Observer</h3><div className="horizontal-flow"><span>Sitemap</span><b>→</b><span>Crawl Pages</span><b>→</b><span>Capture Issues</span><b>→</b><span>Dashboard</span><b>→</b><span>AI Fix Alert</span></div><p className="muted">Crawls every URL in a sitemap, detects broken deployments, JavaScript runtime failures, and console errors across production — then dispatches AI-generated fix alerts.</p><a className="text-link" href="#contact">View case study <Arrow /></a></article>
+          {projects.slice(1).map((p, i) => <ProjectCard key={p.id} project={p} index={i + 1} />)}
         </div>
       </section>
 
-      <section className="wrap lower"><div className="opensource"><span className="section-tag">05 / OPEN SOURCE</span><h2>Packages I&apos;ve published<br /><em>and maintain.</em></h2><div className="oss-stat"><b>9,350+</b><span>Total NPM Downloads</span></div><div className="oss-list"><div><span>📦</span><b>custom-rich-text-editor<small>Customizable React editor · v1.1.4</small></b><a href="https://www.npmjs.com/package/custom-rich-text-editor" target="_blank" rel="noreferrer">NPM <Arrow /></a></div><div><span>📦</span><b>create-nodejs-app<small>Node.js project scaffold · v2.1.7</small></b><a href="https://www.npmjs.com/package/@sai_krishna_m/create-nodejs-app" target="_blank" rel="noreferrer">NPM <Arrow /></a></div><div><span>⚡</span><b>LLM Optimizer packages<small>Core, CLI, provider clients, Redis &amp; memory cache</small></b><a href="https://www.npmjs.com/org/llm-optimize/" target="_blank" rel="noreferrer">NPM <Arrow /></a></div><div><span>🔁</span><b>duplicate-tab-detector<small>React hook that detects duplicated browser tabs and resets per-tab session ids</small></b><a href="https://www.npmjs.com/package/duplicate-tab-detector" target="_blank" rel="noreferrer">NPM <Arrow /></a></div></div></div><div className="skills"><span className="section-tag">06 / CAPABILITIES</span>{[["Frontend", "100%"],["Backend", "95%"],["Databases", "90%"],["Cloud / DevOps", "80%"],["AI Integration", "92%"],["Security", "85%"]].map(([name, width]) => <div className="skill" key={name}><span>{name}</span><i><b style={{ width }} /></i><small>{width}</small></div>)}</div></section>
+      <section className="wrap lower"><div className="opensource"><span className="section-tag">05 / OPEN SOURCE</span><h2>Packages I&apos;ve published<br /><em>and maintain.</em></h2><div className="oss-stat"><b>25,175+</b><span>Total NPM Downloads</span></div><div className="oss-list"><div><span>📦</span><b>create-nodejs-app<small>Node.js project scaffold · v2.1.7</small></b><a href="https://www.npmjs.com/package/@sai_krishna_m/create-nodejs-app" target="_blank" rel="noreferrer">NPM <Arrow /></a></div><div><span>⚡</span><b>LLM Optimizer packages<small>Core, CLI, provider clients, Redis &amp; memory cache</small></b><a href="https://www.npmjs.com/org/llm-optimize/" target="_blank" rel="noreferrer">NPM <Arrow /></a></div><div><span>🛡️</span><b>bot-detection<small>Zero-config client bot detector that sets an isbot cookie · v0.2.4</small></b><a href="https://www.npmjs.com/package/bot-detection" target="_blank" rel="noreferrer">NPM <Arrow /></a></div><div><span>🔁</span><b>duplicate-tab-detector<small>React hook that detects duplicated browser tabs and resets per-tab session ids</small></b><a href="https://www.npmjs.com/package/duplicate-tab-detector" target="_blank" rel="noreferrer">NPM <Arrow /></a></div></div></div><div className="skills"><span className="section-tag">06 / CAPABILITIES</span>{[["Frontend", "100%"],["Backend", "95%"],["Databases", "90%"],["Cloud / DevOps", "80%"],["AI Integration", "92%"],["Security", "85%"]].map(([name, width]) => <div className="skill" key={name}><span>{name}</span><i><b style={{ width }} /></i><small>{width}</small></div>)}</div></section>
 
-      <section className="wrap timeline"><span className="section-tag">07 / EXPERIENCE</span><div className="timeline-grid"><div className="timeline-intro"><h2>From trainee to<br /><em>Senior Engineer.</em></h2><p>From trainee to Senior Engineer in three years. I've shipped insurance platforms, customer portals, and AI systems that handle real users, real data, and real stakes. Recognized with 3+ performance awards at Novac.</p></div><div className="timeline-list"><div><time>2025 — PRESENT</time><h3>Senior Software Engineer</h3><p>Novac Technology Solutions · React, Next.js, Node.js, AWS</p><ul className="timeline-built"><li>Architected micro-frontend modules with React &amp; Next.js for insurance platforms serving 50k+ users</li><li>Built and deployed Node.js microservices with PM2, Nginx reverse proxy.</li><li>Integrated third-party payment gateways and insurance provider APIs with JWT-secured REST endpoints</li><li>Led performance optimization — reduced page load by 40% through code splitting, caching &amp; CDN tuning</li></ul><div className="timeline-improved"><span>↑ System Performance</span><span>↑ API Reliability</span><span>↑ Deployment Speed</span></div></div><div><time>2023 — 2025</time><h3>Software Engineer</h3><p>Novac · Insurance &amp; Fintech</p><ul className="timeline-built"><li>Built Travel Insurance Sales Platform with dynamic quote engine, policy issuance &amp; payment flow</li><li>Developed Customer Portal &amp; CRM using PHP Laravel Lumen with MySQL &amp; Redis caching</li><li>Implemented OAuth 2.0 &amp; JWT auth across multiple client applications</li><li>Conducted VAPT audits and applied OWASP hardening across production APIs</li></ul><div className="timeline-improved"><span>↑ Sales Conversion</span><span>↑ Security Posture</span><span>↑ User Retention</span></div></div><div><time>2022</time><h3>Programmer Analyst Trainee</h3><p>Cognizant · Enterprise application development</p><ul className="timeline-built"><li>Developed enterprise web modules using Angular &amp; REST APIs</li><li>Worked on database design and query optimization with MySQL</li></ul></div></div></div></section>
+      <section className="wrap timeline"><span className="section-tag">07 / EXPERIENCE</span><div className="timeline-grid"><div className="timeline-intro"><h2>From trainee to<br /><em>Senior Engineer.</em></h2><p>From trainee to Senior Engineer in three years. I&apos;ve shipped insurance platforms, customer portals, and AI systems that handle real users, real data, and real stakes. Recognized with 3+ performance awards at Novac.</p></div><div className="timeline-list"><div><time>2025 — PRESENT</time><h3>Senior Software Engineer</h3><p>Novac Technology Solutions · React, Next.js, Node.js, AWS</p><ul className="timeline-built"><li>Architected micro-frontend modules with React &amp; Next.js for insurance platforms serving 50k+ users</li><li>Built and deployed Node.js microservices with PM2, Nginx reverse proxy.</li><li>Integrated third-party payment gateways and insurance provider APIs with JWT-secured REST endpoints</li><li>Led performance optimization — reduced page load by 40% through code splitting, caching &amp; CDN tuning</li></ul><div className="timeline-improved"><span>↑ System Performance</span><span>↑ API Reliability</span><span>↑ Deployment Speed</span></div></div><div><time>2023 — 2025</time><h3>Software Engineer</h3><p>Novac · Insurance &amp; Fintech</p><ul className="timeline-built"><li>Built Travel Insurance Sales Platform with dynamic quote engine, policy issuance &amp; payment flow</li><li>Developed Customer Portal &amp; CRM using PHP Laravel Lumen with MySQL &amp; Redis caching</li><li>Implemented OAuth 2.0 &amp; JWT auth across multiple client applications</li><li>Conducted VAPT audits and applied OWASP hardening across production APIs</li></ul><div className="timeline-improved"><span>↑ Sales Conversion</span><span>↑ Security Posture</span><span>↑ User Retention</span></div></div><div><time>2022</time><h3>Programmer Analyst Trainee</h3><p>Cognizant · Enterprise application development</p><ul className="timeline-built"><li>Developed enterprise web modules using Angular &amp; REST APIs</li><li>Worked on database design and query optimization with MySQL</li></ul></div></div></div></section>
 
       <section className="writing wrap" id="writing"><span className="section-tag">08 / FROM THE NOTEBOOK</span><div className="article"><span>01</span><h3>How I Built a Browser AI Agent</h3><a href="#contact"><Arrow /></a></div><div className="article"><span>02</span><h3>Why I Built Vectorless RAG</h3><a href="#contact"><Arrow /></a></div><div className="article"><span>03</span><h3>Building AI Applications without LangChain</h3><a href="#contact"><Arrow /></a></div></section>
 
